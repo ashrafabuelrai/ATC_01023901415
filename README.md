@@ -1,4 +1,7 @@
 # EventBookingSystem
+# Admin Acount
+# username => alaagad
+# password => Alaa123##
 # 🎫 Event Booking System – ASP.NET MVC & Web API
 
 ### Developed by: **El-Mohandes Ashraf**
