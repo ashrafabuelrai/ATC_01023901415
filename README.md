@@ -20,6 +20,7 @@ This is a fully-featured **Event Booking System** built using ASP.NET Web API an
 - ✔️ Dark mode toggle with preference stored in `localStorage`.
 - ✔️ Responsive and modern UI with Bootstrap 5.
 - ✔️ Admin interface to add events in Arabic.
+- ✔️ Admin UI to add events available **in Arabic only**.
 - ✔️ Automatic translation to English using **LibreTranslate** (free API).
 - ✔️ Stored bilingual content in the database (Title/Description in both languages).
 - ✔️ Event details, booking form, and booking history implemented.
