@@ -1,0 +1,62 @@
+﻿
+
+@model List<BookingVM>
+@inject IViewLocalizer localizer
+
+@{
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+    var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+    if (userRole == SD.Role_Admin)
+    {
+        var culture = new CultureInfo("ar-EG");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+    ViewData["Title"] =@localizer["MyEvents"];
+
+    var lang = CultureInfo.CurrentCulture.Name.StartsWith("ar") ? "ar" : "en";
+    var dir = lang == "ar" ? "rtl" : "ltr";
+    var textAlignClass = lang == "ar" ? "text-end" : "text-start";  // Bootstrap 5 uses text-end/text-start
+}
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header bg-primary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@localizer["MyEvents"]</h2>
+            </div>
+        </div>
+    </div>
+
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>@localizer["Name"]</th>
+                    <th>@localizer["Category"]</th>
+                    <th>@localizer["Price"]</th>
+                    <th>@localizer["Venue"]</th>
+                    <th>@localizer["Date"]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var bookingVM in Model)
+                {
+                    <tr>
+                    <td>@(lang == "ar" ? bookingVM.EventName : bookingVM.EventNameEN)</td>
+                    <td>@(lang == "ar" ? bookingVM.EventCategory : bookingVM.EventCategoryEN)</td>
+                    <td>@bookingVM.EventPrice.ToString("c")</td>
+                    <td>@(lang == "ar" ? bookingVM.EventVenue : bookingVM.EventVenueEN)</td>
+                        <td>@bookingVM.EventDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-controller="Event" asp-action="Details" asp-route-Id="@bookingVM.EventId" class="btn btn-sm btn-primary mx-1">
+                            <i class="bi bi-pencil-square"></i>@(lang=="ar"?"تفاصيل":"Details")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

@@ -1,0 +1,90 @@
+﻿/* Default (Light) Theme */
+body {
+    background-color: #ffffff; /* White background */
+    color: #212529; /* Dark text */
+}
+
+.navbar-custom-dark {
+    background-color: #f8f9fa; /* Light background for navbar */
+}
+
+.nav-link.text-dark {
+    color: #212529 !important; /* Dark text for links */
+}
+
+.button-primary {
+    background-color: #007BFF; /* Blue primary button */
+    color: #ffffff;
+}
+
+.button-secondary {
+    background-color: #6C757D; /* Gray secondary button */
+    color: #ffffff;
+}
+
+.accent {
+    color: #FFD700; /* Gold accent color */
+}
+
+/* Dark Theme */
+body.dark-theme {
+    background-color: #121212; /* Dark background */
+    color: #E5E5E5; /* Light text */
+}
+
+
+    body.dark-theme .navbar-custom-dark {
+        background-color: #1E1E1E; /* Dark navbar background */
+    }
+
+    body.dark-theme .nav-link.text-dark {
+        color: #E5E5E5 !important; /* Light text for links in dark theme */
+    }
+
+    body.dark-theme .button-primary {
+        background-color: #03A9F4; /* Blue primary button in dark mode */
+        color: #ffffff;
+    }
+
+    body.dark-theme .button-secondary {
+        background-color: #B0BEC5; /* Light gray secondary button */
+        color: #000000;
+    }
+
+    body.dark-theme .accent {
+        color: #FFEB3B; /* Yellow accent in dark mode */
+    }
+
+/* Theme Toggle Button */
+#theme-switch {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.theme-icon {
+    display: none; /* Hide both icons by default */
+}
+
+body.light-theme .light-icon {
+    display: inline; /* Show light mode icon in light theme */
+}
+
+body.dark-theme .dark-icon {
+    display: inline; /* Show dark mode icon in dark theme */
+}
+
+/* Transition for smooth switching */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-custom-dark {
+    transition: background-color 0.3s ease;
+}
+
+.nav-link.text-dark {
+    transition: color 0.3s ease;
+}
+
+

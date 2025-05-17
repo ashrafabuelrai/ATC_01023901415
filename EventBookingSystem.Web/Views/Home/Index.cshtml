@@ -1,0 +1,281 @@
+﻿@inject IViewLocalizer localizer
+@inject IConfiguration configuration
+@model List<EventVM>
+
+@{
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+    var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+    if (userRole == SD.Role_Admin)
+    {
+        var culture = new CultureInfo("ar-EG");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+    var UserId = httpAcc.HttpContext.Session.GetString("UserId");
+    var lang = CultureInfo.CurrentCulture.Name.StartsWith("ar") ? "ar" : "en";
+    var dir = lang == "ar" ? "rtl" : "ltr";
+    var textAlignClass = lang == "ar" ? "text-end" : "text-start";
+}
+
+<div class="container mt-4 mb-5" dir="@dir">
+    <h2 class="text-center mb-4">@(lang == "ar" ? "الفعاليات" : "Events")</h2>
+
+    <!-- Filter Form -->
+    <div class="row mb-4 justify-content-@(lang == "ar" ? "start" : "end")">
+        <div class="col-md-4">
+            <form id="categoryFilterForm" asp-action="Index" method="get">
+                <select name="categoryId" class="form-select" asp-items="ViewBag.Categories">
+                    <option value="">@localizer["AllCategories"]</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Events Grid -->
+    <div id="events-container" class="row">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <!-- Image Gallery (Replaces Carousel) -->
+                    <div class="image-gallery">
+                        @{
+                            var baseUrl = configuration.GetValue<string>("EventAPI")?.TrimEnd('/');
+                            var firstImage = e.Event.Images.FirstOrDefault();
+                        }
+
+                        <!-- Main Image Display -->
+                        <div class="main-image-container ratio ratio-16x9">
+                            @if (firstImage != null)
+                            {
+                                var cleanPath = firstImage.Url.Replace("\\", "/").TrimStart('/');
+                                var imageUrl = $"{baseUrl}/{cleanPath}";
+                                var altText = lang == "ar" ? e.Event.Name : e.Event.NameEN;
+
+                                <img src="@imageUrl"
+                                     class="main-gallery-image"
+                                     loading="lazy"
+                                     alt="@altText"
+                                     data-gallery-id="gallery-@e.Event.Id">
+                            }
+                            else
+                            {
+                                <div class="no-image-placeholder bg-light d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-image fs-1 text-muted"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Thumbnail Navigation -->
+                        @if (e.Event.Images.Count > 1)
+                        {
+                            <div class="thumbnail-nav">
+                                @for (int i = 0; i < e.Event.Images.Count; i++)
+                                {
+                                    var cleanPath = e.Event.Images[i].Url.Replace("\\", "/").TrimStart('/');
+                                    var imageUrl = $"{baseUrl}/{cleanPath}";
+
+                                    <button class="thumbnail-btn @(i == 0 ? "active" : "")"
+                                            data-gallery-id="gallery-@e.Event.Id"
+                                            data-image="@imageUrl"
+                                            aria-label="@localizer["ViewImage"] @(i + 1)">
+                                        <img src="@imageUrl"
+                                             class="thumbnail-img"
+                                             loading="lazy"
+                                             width="60"
+                                             height="45"
+                                             alt="@(lang == "ar" ? e.Event.Name : e.Event.NameEN) thumbnail @(i + 1)">
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-body @textAlignClass">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="card-title g">@(lang == "ar" ? e.Event.Name : e.Event.NameEN)</h5>
+                        </div>
+                        <p class="card-text text-muted">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-calendar-event text-primary"></i>
+                                <span>@e.Event.Date.ToString("dd MMM yyyy")</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                                <span>@(lang == "ar" ? e.Event.Venue : e.Event.VenueEN)</span>
+                            </div>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 text-primary">@e.Event.Price.ToString("c")</span>
+                            <a asp-action="Details" asp-controller="Event" asp-route-Id="@e.Event.Id" class="btn btn-secondary">
+                                @(lang == "ar" ? "تفاصيل" : "Details")
+                            </a>
+                            <form asp-action="Create" asp-controller="Booking" method="post">
+                                <input type="text" hidden name="EventId" value="@e.Event.Id" />
+                                <input type="text" hidden name="UserId" value="@UserId" />
+                                <input type="date" hidden name="BookingDate" value="@DateTime.Now" />
+                                @if (e.IsBooked)
+                                {
+                                    <button type="button" class="btn btn-secondary" disabled>
+                                        @(lang == "ar" ? "محجوز" : "Booked")
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary">
+                                        @(lang == "ar" ? "احجز الان" : "Book Now")
+                                    </button>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+    <style>
+        /* Image Gallery Styles */
+        .image-gallery {
+            position: relative;
+        }
+
+        .main-image-container {
+            position: relative;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .main-gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 100%;
+        }
+
+        .thumbnail-nav {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .thumbnail-btn {
+            border: 2px solid transparent;
+            padding: 0;
+            background: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.2s ease;
+        }
+
+            .thumbnail-btn.active {
+                border-color: var(--bs-primary);
+            }
+
+        .thumbnail-img {
+            width: 60px;
+            height: 45px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* RTL/LTR Adjustments */
+        [dir="rtl"] .thumbnail-nav {
+            direction: ltr;
+            justify-content: flex-end;
+        }
+
+        /* Scrollbar styling for WebKit browsers */
+        .thumbnail-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .thumbnail-nav::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+    </style>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle category filter change
+            $('select[name="categoryId"]').change(function () {
+                filterEvents();
+            });
+
+            // Thumbnail navigation
+            document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const galleryId = this.dataset.galleryId;
+                    const mainImage = document.querySelector(`.main-gallery-image[data-gallery-id="${galleryId}"]`);
+
+                    if (mainImage) {
+                        // Update main image
+                        mainImage.src = this.dataset.image;
+
+                        // Update active state
+                        document.querySelectorAll(`.thumbnail-btn[data-gallery-id="${galleryId}"]`)
+                            .forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            function filterEvents() {
+                var form = $('#categoryFilterForm');
+                var formData = form.serialize();
+                var url = form.attr('action') + '?' + formData;
+
+                // Show loading indicator
+                $('#events-container').html(`
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">@localizer["LoadingEvents"]</p>
+                    </div>
+                `);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (response) {
+                        var newContent = $(response).find('#events-container').html();
+                        $('#events-container').html(newContent);
+                        history.pushState(null, '', url);
+                    },
+                    error: function () {
+                        $('#events-container').html(`
+                            <div class="col-12 text-center py-5">
+                                <div class="alert alert-danger">
+        @localizer["ErrorLoadingEvents"]
+                                </div>
+                                <button onclick="filterEvents()" class="btn btn-primary mt-2">
+        @localizer["TryAgain"]
+                                </button>
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function () {
+                filterEvents();
+            });
+        });
+    </script>
+}

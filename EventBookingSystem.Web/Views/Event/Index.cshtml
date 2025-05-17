@@ -1,0 +1,68 @@
+﻿@model List<EventDTO>
+
+@{
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+    var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+    if (userRole == SD.Role_Admin)
+    {
+        var culture = new CultureInfo("ar-EG");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+    ViewData["Title"] = "قائمة الفعاليات";
+}
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header bg-primary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">قائمة الفعاليات</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+        <div class=" pb-3">
+            <div class="col-2 text-end">
+                <a asp-action="Create" asp-controller="Event" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> إضافة فعالية جديدة
+                </a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>اسم الفعالية</th>
+                    <th>الفئة</th>
+                    <th>السعر</th>
+                    <th>المكان</th>
+                    <th>التاريخ</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ev in Model)
+                {
+                    <tr>
+                        <td>@ev.Name</td>
+                        <td>@ev.Category</td>
+                        <td>@ev.Price.ToString("c")</td>
+                        <td>@ev.Venue</td>
+                        <td>@ev.Date.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-controller="Event" asp-action="Update" asp-route-Id="@ev.Id" class="btn btn-sm btn-primary mx-1">
+                                <i class="bi bi-pencil-square"></i> تعديل
+                            </a>
+                            <form asp-controller="Event" asp-action="Delete" asp-route-id="@ev.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger mx-1" onclick="return confirm('هل أنت متأكد أنك تريد حذف هذه الفعالية؟');">
+                                    <i class="bi bi-trash-fill"></i> حذف
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,255 @@
+﻿@inject IViewLocalizer localizer
+@inject IConfiguration configuration
+@model EventVM
+@{
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+    var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+    if (userRole == SD.Role_Admin)
+    {
+        var culture = new CultureInfo("ar-EG");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+    var UserId = httpAcc.HttpContext.Session.GetString("UserId");
+    var lang = CultureInfo.CurrentCulture.Name.StartsWith("ar") ? "ar" : "en";
+    var dir = lang == "ar" ? "rtl" : "ltr";
+    var textAlign = lang == "ar" ? "text-end" : "text-start";
+}
+
+<div class="card h-100 shadow-sm mb-5" dir="@dir">
+    <!-- Modern Image Gallery (Replaces Carousel) -->
+    <div class="image-gallery">
+        @{
+            var baseUrl = configuration.GetValue<string>("EventAPI");
+        }
+
+        <!-- Main Image Display -->
+        <div class="main-image-container ratio ratio-16x9 bg-light">
+            @if (Model.Event.Images.Any())
+            {
+                var firstImage = Model.Event.Images.First();
+                var cleanPath = firstImage.Url.Replace("\\", "/");
+                var imageUrl = baseUrl + cleanPath;
+
+                <img src="@imageUrl"
+                     class="main-gallery-image"
+                     loading="eager"
+                     alt="@(lang == "ar" ? Model.Event.Name : Model.Event.NameEN)"
+                     data-gallery-id="gallery-@Model.Event.Id">
+            }
+            else
+            {
+                <div class="no-image-placeholder d-flex align-items-center justify-content-center">
+                    <i class="bi bi-image fs-1 text-muted"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Thumbnail Navigation -->
+        @if (Model.Event.Images.Count > 1)
+        {
+            <div class="thumbnail-nav">
+                @for (int i = 0; i < Model.Event.Images.Count; i++)
+                {
+                    var cleanPath = Model.Event.Images[i].Url.Replace("\\", "/");
+                    var imageUrl = baseUrl + cleanPath;
+
+                    <button class="thumbnail-btn @(i == 0 ? "active" : "")"
+                            data-gallery-id="gallery-@Model.Event.Id"
+                            data-image="@imageUrl"
+                            aria-label="@localizer["ViewImage"] @(i + 1)">
+                        <img src="@imageUrl"
+                             class="thumbnail-img"
+                             loading="lazy"
+                             width="80"
+                             height="60"
+                             alt="@(lang == "ar" ? Model.Event.Name : Model.Event.NameEN) thumbnail @(i + 1)">
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body d-flex flex-column" @textAlign>
+        <div class="mb-2">
+            <span class="badge bg-secondary mb-2">@(lang == "ar" ? Model.Event.Category : Model.Event.CategoryEN)</span>
+            <h3 class="card-title h5 mb-3">@(lang == "ar" ? Model.Event.Name : Model.Event.NameEN)</h3>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-calendar-event text-primary"></i>
+                <span>@Model.Event.Date.ToString("dd MMM yyyy")</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-geo-alt-fill text-primary"></i>
+                <span>@(lang == "ar" ? Model.Event.Venue : Model.Event.VenueEN)</span>
+            </div>
+
+            <p class="card-text text-muted mb-3 line-clamp-3">
+                @(lang == "ar" ? Model.Event.Description : Model.Event.DescriptionEN)
+            </p>
+        </div>
+
+        <div class="mt-auto d-flex justify-content-between align-items-center">
+            <span class="h5 text-primary fw-bold">@Model.Event.Price.ToString("C")</span>
+            <form asp-action="Create" asp-controller="Booking" method="post">
+                <input type="text" hidden name="EventId" value="@Model.Event.Id" />
+                <input type="text" hidden name="UserId" value="@UserId" />
+                <input type="date" hidden name="BookingDate" value="@DateTime.Now" />
+                @if (Model.IsBooked)
+                {
+                    <button type="button" class="btn btn-secondary" disabled>
+                        @(lang == "ar" ? "محجوز" : "Booked")
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-primary">
+                        @(lang == "ar" ? "احجز الان" : "Book Now")
+                    </button>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <style>
+        /* Image Gallery Styles */
+        .image-gallery {
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .main-image-container {
+            position: relative;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .main-gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 100%;
+            color: #ddd;
+        }
+
+        .thumbnail-nav {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            background-color: #f8f9fa;
+        }
+
+        .thumbnail-btn {
+            border: 2px solid transparent;
+            padding: 0;
+            background: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.2s ease;
+        }
+
+            .thumbnail-btn.active {
+                border-color: var(--bs-primary);
+            }
+
+        .thumbnail-img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Card Styles */
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* RTL/LTR Adjustments */
+        [dir="rtl"] .thumbnail-nav {
+            direction: ltr;
+            justify-content: flex-end;
+        }
+
+        /* Scrollbar styling */
+        .thumbnail-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .thumbnail-nav::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+    </style>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thumbnail navigation
+            document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const galleryId = this.dataset.galleryId;
+                    const mainImage = document.querySelector(`.main-gallery-image[data-gallery-id="${galleryId}"]`);
+
+                    if (mainImage) {
+                        // Smooth transition effect
+                        mainImage.style.opacity = 0;
+
+                        setTimeout(() => {
+                            mainImage.src = this.dataset.image;
+                            mainImage.style.opacity = 1;
+
+                            // Update active state
+                            document.querySelectorAll(`.thumbnail-btn[data-gallery-id="${galleryId}"]`)
+                                .forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+                        }, 150);
+                    }
+                });
+            });
+
+            // Lazy loading for thumbnails
+            if ('IntersectionObserver' in window) {
+                const lazyThumbnails = document.querySelectorAll('.thumbnail-img');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.src;
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {
+                    rootMargin: '200px'
+                });
+
+                lazyThumbnails.forEach(img => observer.observe(img));
+            }
+        });
+    </script>
+}

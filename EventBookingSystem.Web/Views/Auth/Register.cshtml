@@ -1,0 +1,194 @@
+﻿@model RegisterationRequestDTO
+@inject IViewLocalizer localizer
+@{
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+    var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+    if (userRole == SD.Role_Admin)
+    {
+        var culture = new CultureInfo("ar-EG");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+    var lang = CultureInfo.CurrentCulture.Name.StartsWith("ar") ? "ar" : "en";
+    var dir = lang == "ar" ? "rtl" : "ltr";
+    var textAlign = lang == "ar" ? "text-end" : "text-start";
+    var floatDir = lang == "ar" ? "float-start" : "float-end";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-lg-5 col-md-7 col-sm-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 text-center mb-0">@localizer["CreateAccount"]</h1>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Register" asp-controller="Auth" autocomplete="off">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row">
+                            <!-- Username -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="UserName" class="form-label">@localizer["Username"] *</label>
+                                <div class="input-group">
+                                   
+                                    <input asp-for="UserName" class="form-control" placeholder="@localizer["EnterUsername"]" />
+                                </div>
+                                <span asp-validation-for="UserName" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Full Name -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label">@localizer["FullName"] *</label>
+                                <div class="input-group">
+                                    
+                                    <input asp-for="FullName" class="form-control" placeholder="@localizer["EnterFullName"]" />
+                                </div>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Password with strength meter -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">@localizer["Password"] *</label>
+                            <div class="input-group">
+                                
+                                <input asp-for="Password" type="password" class="form-control"
+                                       placeholder="@localizer["EnterPassword"]" id="passwordField" />
+                                
+                            </div>
+                            
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label for="ConfirmPassword" class="form-label">@localizer["ConfirmPassword"] *</label>
+                            <div class="input-group">
+                                
+                                <input type="password" class="form-control"
+                                       placeholder="@localizer["ConfirmPassword"]" id="confirmPassword" />
+                                
+                            </div>
+                            <small id="passwordMatch" class="text-danger"></small>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg" id="registerBtn">
+                                <i class="fas fa-user-plus me-2"></i>@localizer["Register"]
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <span class="text-muted">@localizer["AlreadyHaveAccount"]</span>
+                            <a asp-action="Login" asp-controller="Auth" class="ms-2">@localizer["LoginHere"]</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Password visibility toggle
+            $('.toggle-password').click(function() {
+                const icon = $(this).find('i');
+                const input = $(this).closest('.input-group').find('input');
+
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // Password strength checker
+            $('#passwordField').on('input', function() {
+                const password = $(this).val();
+                const strength = checkPasswordStrength(password);
+                const progressBar = $('.password-strength .progress-bar');
+                const strengthText = $('.password-strength-text');
+
+                progressBar.css('width', strength.percentage + '%');
+                progressBar.removeClass('bg-danger bg-warning bg-success');
+                progressBar.addClass(strength.class);
+                strengthText.text(strength.text);
+                strengthText.removeClass('text-danger text-warning text-success');
+                strengthText.addClass(strength.textClass);
+            });
+
+            // Password confirmation check
+            $('#confirmPassword').on('input', function() {
+                const confirmPassword = $(this).val();
+                const password = $('#passwordField').val();
+                const matchText = $('#passwordMatch');
+
+                if (confirmPassword && password !== confirmPassword) {
+                    matchText.text('@localizer["PasswordsDontMatch"]');
+                } else {
+                    matchText.text('');
+                }
+            });
+
+            // Form submission validation
+            $('form').submit(function(e) {
+                const password = $('#passwordField').val();
+                const confirmPassword = $('#confirmPassword').val();
+
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    $('#passwordMatch').text('@localizer["PasswordsMustMatch"]');
+                    $('#confirmPassword').focus();
+                }
+            });
+
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                const requirements = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password),
+                    specialChar: /[^A-Za-z0-9]/.test(password)
+                };
+
+                strength += requirements.length ? 1 : 0;
+                strength += requirements.uppercase ? 1 : 0;
+                strength += requirements.lowercase ? 1 : 0;
+                strength += requirements.number ? 1 : 0;
+                strength += requirements.specialChar ? 1 : 0;
+
+                if (strength <= 2) {
+                    return {
+                        percentage: 33,
+                        class: 'bg-danger',
+                        text: '@localizer["Weak"]',
+                        textClass: 'text-danger'
+                    };
+                } else if (strength <= 4) {
+                    return {
+                        percentage: 66,
+                        class: 'bg-warning',
+                        text: '@localizer["Medium"]',
+                        textClass: 'text-warning'
+                    };
+                } else {
+                    return {
+                        percentage: 100,
+                        class: 'bg-success',
+                        text: '@localizer["Strong"]',
+                        textClass: 'text-success'
+                    };
+                }
+            }
+        });
+    </script>
+}

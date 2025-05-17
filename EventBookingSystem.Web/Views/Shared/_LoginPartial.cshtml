@@ -1,0 +1,34 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpAcc
+@inject IViewLocalizer localizer
+@{
+	var userName = httpAcc.HttpContext.Session.GetString("UserName");
+	var UserId = httpAcc.HttpContext.Session.GetString("UserId");
+	var userRole = httpAcc.HttpContext.Session.GetString("UserRole");
+	var lang = CultureInfo.CurrentCulture.Name.StartsWith("ar") ? "ar" : "en";
+	if (userRole == SD.Role_Admin)
+	{
+		lang = "ar";
+	}
+	var dir = (lang == "en") ? "ltr" : "rtl";
+
+}
+@if (httpAcc.HttpContext.Session.GetString(SD.SessionToken) != null &&httpAcc.HttpContext.Session.GetString(SD.SessionToken).ToString().Length > 0)
+{
+	<li class="nav-item pt-2 text-light">
+		@localizer["Hello"], @userName !
+	</li>
+
+	<li class="nav-item">
+		<a class=" nav-link text-light " asp-controller="Auth" asp-action="Logout">@localizer["Logout"]</a>
+	</li>
+	
+}
+else
+{
+	<li class="nav-item ">
+		<a class=" nav-link text-light " asp-controller="Auth" asp-action="Login">@localizer["Login"]</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link text-light " asp-controller="Auth" asp-action="Register">@localizer["Register"]</a>
+	</li>
+}
