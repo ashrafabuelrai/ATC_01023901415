@@ -1,7 +1,8 @@
 # EventBookingSystem
 # Admin Acount
-# username => alaagad
-# password => Alaa123##
+# I published MVC and API and Database on MonsterASP.Net Free Cloud, and this URL http://eventsmvc.runasp.net/
+# username admin => ashrafabuelrai
+# password admin => Ashraf123#
 # 🎫 Event Booking System – ASP.NET MVC & Web API
 
 ### Developed by: **El-Mohandes Ashraf**
